@@ -25,6 +25,24 @@
       $con->close();
     }
 
+    public static function random() {
+      $con = new Connection();
+      $con = $con->getConnection();
+      $sql = "SELECT * FROM band order by rand() limit 1";
+      $rs = $con->query($sql);
+      $band = [];
+
+      if ($rs->num_rows > 0) {
+          $band = new Band();
+          $row = $rs->fetch_assoc();
+          $band->put($row["id"], $row["band"], $row["created"], $row["country"], $row["years_active"]);
+          $band = $band->arraylize();
+      }
+
+      $con->close();
+      return $band;
+    }
+
 		public function put($id, $band, $created, $country, $years_active) {
 			$this->id = $id;
 			$this->band = $band;
@@ -99,6 +117,25 @@
           $band = new Band();
           $band->put($row["id"], $row["band"], $row["created"], $row["country"], $row["years_active"]);
           $bands[] = $band->arraylize_no_recursive();
+        }
+
+      $con->close();
+      
+      return $bands;
+    }
+    
+    public static function search($keyword) {
+      $con = new Connection();
+      $con = $con->getConnection();
+      $sql = "SELECT * FROM band where band like '%$keyword%'";
+      $rs = $con->query($sql);
+      $bands = [];
+
+      if ($rs->num_rows > 0)
+        while($row = $rs->fetch_assoc()) {
+          $band = new Band();
+          $band->put($row["id"], $row["band"], $row["created"], $row["country"], $row["years_active"]);
+          $bands[] = $band->arraylize();
         }
 
       $con->close();

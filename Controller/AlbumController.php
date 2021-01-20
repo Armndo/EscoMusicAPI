@@ -30,6 +30,7 @@
 			$album->charge($this->data["album"], $this->data["released"], $this->data["recorded"], $this->data["length"]);
 			$album->commit();
 			$album->bindGenre($this->data["genre"]);
+			$album->bindRecord($this->data["record"]);
 			$album->bindArtist($this->data["artist"]);
 			$album->bindBand($this->data["band"]);
 		}
@@ -39,9 +40,11 @@
 			$album->find($this->data["id"]);
 			$album->update($this->data["album"], $this->data["released"], $this->data["recorded"], $this->data["length"]);
 			$album->unbindGenres();
+			$album->unbindRecords();
 			$album->unbindArtists();
 			$album->unbindBands();
 			$album->bindGenre($this->data["genre"]);
+			$album->bindRecord($this->data["record"]);
 			$album->bindArtist($this->data["artist"]);
 			$album->bindBand($this->data["band"]);
 		}

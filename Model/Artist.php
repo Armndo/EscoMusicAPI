@@ -28,6 +28,24 @@
       $con->close();
     }
 
+    public static function random() {
+      $con = new Connection();
+      $con = $con->getConnection();
+      $sql = "SELECT * FROM artist order by rand() limit 1";
+      $rs = $con->query($sql);
+      $artist = [];
+
+      if ($rs->num_rows > 0) {
+          $artist = new Artist();
+          $row = $rs->fetch_assoc();
+          $artist->put($row["id"], $row["name"], $row["birthday"], $row["gender"], $row["country"], $row["years_active"]);
+          $artist = $artist->arraylize();
+      }
+
+      $con->close();
+      return $artist;
+    }
+
 		public function put($id, $name, $birthday, $gender, $country, $years_active) {
 			$this->id = $id;
 			$this->name = $name;
@@ -108,6 +126,25 @@
           $artist = new Artist();
           $artist->put($row["id"], $row["name"], $row["birthday"], $row["gender"], $row["country"], $row["years_active"]);
           $artists[] = $artist->arraylize_no_recursive();
+        }
+
+      $con->close();
+      
+      return $artists;
+    }
+    
+    public static function search($keyword) {
+      $con = new Connection();
+      $con = $con->getConnection();
+      $sql = "SELECT * FROM artist where name like '%$keyword%'";
+      $rs = $con->query($sql);
+      $artists = [];
+
+      if ($rs->num_rows > 0)
+        while($row = $rs->fetch_assoc()) {
+          $artist = new Artist();
+          $artist->put($row["id"], $row["name"], $row["birthday"], $row["gender"], $row["country"], $row["years_active"]);
+          $artists[] = $artist->arraylize();
         }
 
       $con->close();

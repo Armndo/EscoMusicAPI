@@ -7,11 +7,12 @@ create table `user`(
     email varchar(320) not null,
     password varchar(20) not null,
     name varchar(60) not null,
+    type varchar(20) not null,
     primary key(id),
     unique(email)
 );
 
-insert into user (email, password, name) values ("armndo.g@gmail.com", "123", "armando"), ("test@mail.com", "123", "test");
+insert into user (email, password, name, type) values ("armndo.g@gmail.com", "123", "armando", "locutor"), ("test@mail.com", "123", "test", "visitante");
 
 create table genre(
     id int not null auto_increment,
@@ -139,6 +140,14 @@ create table song_genre(
     foreign key(genre_id) references genre(id) on delete cascade on update cascade
 );
 
+create table song_media(
+    song_id int not null,
+    media_id int not null,
+    primary key(song_id, media_id),
+    foreign key(song_id) references song(id) on delete cascade on update cascade,
+    foreign key(media_id) references media(id) on delete cascade on update cascade
+);
+
 create table artist_media(
     artist_id int not null,
     media_id int not null,
@@ -161,4 +170,21 @@ create table member(
     primary key(band_id, artist_id),
     foreign key(band_id) references band(id) on delete cascade on update cascade,
     foreign key(artist_id) references artist(id) on delete cascade on update cascade
+);
+
+create table record(
+    id int not null auto_increment,
+    record varchar(60) not null,
+    funded date,
+    country varchar(60),
+    founder varchar(60),
+    primary key(id)
+);
+
+create table record_album(
+    record_id int not null,
+    album_id int not null,
+    primary key(record_id, album_id),
+    foreign key(record_id) references record(id) on delete cascade on update cascade,
+    foreign key(album_id) references album(id) on delete cascade on update cascade
 );

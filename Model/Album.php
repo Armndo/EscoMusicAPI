@@ -26,6 +26,24 @@
       $con->close();
     }
 
+    public static function random() {
+      $con = new Connection();
+      $con = $con->getConnection();
+      $sql = "SELECT * FROM album order by rand() limit 1";
+      $rs = $con->query($sql);
+      $album = [];
+
+      if ($rs->num_rows > 0) {
+          $album = new Album();
+          $row = $rs->fetch_assoc();
+          $album->put($row["id"], $row["album"], $row["released"], $row["recorded"], $row["length"]);
+          $album = $album->arraylize();
+      }
+
+      $con->close();
+      return $album;
+    }
+
 		public function put($id, $album, $released, $recorded, $length) {
 			$this->id = $id;
 			$this->album = $album;
@@ -42,7 +60,7 @@
     }
 
 		public function arraylize() {
-      return ["id" => $this->id, "album" => $this->album, "released" => $this->released, "recorded" => $this->recorded, "length" => $this->length, "genres" => $this->genres(), "artists" => $this->artists(), "bands" => $this->bands(), "songs" => $this->songs()];
+      return ["id" => $this->id, "album" => $this->album, "released" => $this->released, "recorded" => $this->recorded, "length" => $this->length, "genres" => $this->genres(), "records" => $this->records(), "artists" => $this->artists(), "bands" => $this->bands(), "songs" => $this->songs()];
 		}
 
 		public function arraylize_no_recursive() {
@@ -106,6 +124,25 @@
       
       return $albums;
     }
+    
+    public static function search($keyword) {
+      $con = new Connection();
+      $con = $con->getConnection();
+      $sql = "SELECT * FROM album where album like '%$keyword%'";
+      $rs = $con->query($sql);
+      $albums = [];
+
+      if ($rs->num_rows > 0)
+        while($row = $rs->fetch_assoc()) {
+          $album = new Album();
+          $album->put($row["id"], $row["album"], $row["released"], $row["recorded"], $row["length"]);
+          $albums[] = $album->arraylize();
+        }
+
+      $con->close();
+      
+      return $albums;
+    }
 
     private function genres() {
       $con = new Connection();
@@ -124,6 +161,25 @@
       $con->close();
       
       return $genres;
+    }
+
+    private function records() {
+      $con = new Connection();
+      $con = $con->getConnection();
+      $sql = "select * from record_album join record where record_id = id and album_id = $this->id";
+      $rs = $con->query($sql);
+      $records = [];
+
+      if ($rs->num_rows > 0)
+        while($row = $rs->fetch_assoc()) {
+          $record = new Record();
+          $record->put($row["id"], $row["record"], $row["funded"], $row["country"], $row["founder"]);
+          $records[] = $record->arraylize_no_recursive();
+        }
+
+      $con->close();
+      
+      return $records;
     }
 
     private function artists() {
@@ -286,6 +342,30 @@
       $con = new Connection();
       $con = $con->getConnection(); 
       $sql = "DELETE FROM band_album WHERE album_id = $this->id";
+      $con->query($sql);
+      $con->close();
+    }
+
+    public function bindRecord($records) {
+      if(empty($records)) {
+        return ;
+      }
+
+      $con = new Connection();
+      $con = $con->getConnection(); 
+      foreach($records as $record_id) {
+        $sql = "INSERT INTO record_album VALUES (?, ?)";
+        $aux = $con->prepare($sql);
+        $aux->bind_param("ii", $record_id, $this->id);
+        $aux->execute();
+      }
+      $con->close();
+    }
+
+    public function unbindRecords() {
+      $con = new Connection();
+      $con = $con->getConnection(); 
+      $sql = "DELETE FROM record_album WHERE album_id = $this->id";
       $con->query($sql);
       $con->close();
     }

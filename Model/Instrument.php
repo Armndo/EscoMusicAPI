@@ -21,6 +21,24 @@
       $con->close();
     }
 
+    public static function random() {
+      $con = new Connection();
+      $con = $con->getConnection();
+      $sql = "SELECT * FROM instrument order by rand() limit 1";
+      $rs = $con->query($sql);
+      $instrument = [];
+
+      if ($rs->num_rows > 0) {
+          $instrument = new Instrument();
+          $row = $rs->fetch_assoc();
+          $instrument->put($row["id"], $row["instrument"], $row["description"]);
+          $instrument = $instrument->arraylize();
+      }
+
+      $con->close();
+      return $instrument;
+    }
+
 		public function put($id, $instrument, $description) {
 			$this->id = $id;
 			$this->instrument = $instrument;
@@ -83,6 +101,25 @@
           $instrument = new Instrument();
           $instrument->put($row["id"], $row["instrument"], $row["description"]);
           $instruments[] = $instrument->arraylize_no_recursive();
+        }
+
+      $con->close();
+      
+      return $instruments;
+    }
+    
+    public static function search($keyword) {
+      $con = new Connection();
+      $con = $con->getConnection();
+      $sql = "SELECT * FROM instrument where instrument like '%$keyword%'";
+      $rs = $con->query($sql);
+      $instruments = [];
+
+      if ($rs->num_rows > 0)
+        while($row = $rs->fetch_assoc()) {
+          $instrument = new Instrument();
+          $instrument->put($row["id"], $row["instrument"], $row["description"]);
+          $instruments[] = $instrument->arraylize();
         }
 
       $con->close();

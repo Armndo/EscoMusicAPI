@@ -21,6 +21,24 @@
       $con->close();
     }
 
+    public static function random() {
+      $con = new Connection();
+      $con = $con->getConnection();
+      $sql = "SELECT * FROM genre order by rand() limit 1";
+      $rs = $con->query($sql);
+      $genre = [];
+
+      if ($rs->num_rows > 0) {
+          $genre = new Genre();
+          $row = $rs->fetch_assoc();
+          $genre->put($row["id"], $row["genre"], $row["description"]);
+          $genre = $genre->arraylize();
+      }
+
+      $con->close();
+      return $genre;
+    }
+
 		public function put($id, $genre, $description) {
 			$this->id = $id;
 			$this->genre = $genre;
@@ -83,6 +101,25 @@
           $genre = new genre();
           $genre->put($row["id"], $row["genre"], $row["description"]);
           $genres[] = $genre->arraylize_no_recursive();
+        }
+
+      $con->close();
+      
+      return $genres;
+    }
+    
+    public static function search($keyword) {
+      $con = new Connection();
+      $con = $con->getConnection();
+      $sql = "SELECT * FROM genre where genre like '%$keyword%'";
+      $rs = $con->query($sql);
+      $genres = [];
+
+      if ($rs->num_rows > 0)
+        while($row = $rs->fetch_assoc()) {
+          $genre = new genre();
+          $genre->put($row["id"], $row["genre"], $row["description"]);
+          $genres[] = $genre->arraylize();
         }
 
       $con->close();

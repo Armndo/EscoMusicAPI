@@ -30,6 +30,24 @@
       $con->close();
     }
 
+    public static function random() {
+      $con = new Connection();
+      $con = $con->getConnection();
+      $sql = "SELECT * FROM song order by rand() limit 1";
+      $rs = $con->query($sql);
+      $song = [];
+
+      if ($rs->num_rows > 0) {
+          $song = new Song();
+          $row = $rs->fetch_assoc();
+          $song->put($row["id"], $row["song"], $row["lyrics"], $row["released"], $row["recorded"], $row["length"], $row["album_id"]);
+          $song = $song->arraylize();
+      }
+
+      $con->close();
+      return $song;
+    }
+
 		public function put($id, $song, $lyrics, $released, $recorded, $length, $album_id) {
 			$this->id = $id;
 			$this->song = $song;
@@ -50,7 +68,7 @@
     }
 
 		public function arraylize() {
-      return ["id" => $this->id, "song" => $this->song, "lyrics" => $this->lyrics, "released" => $this->released, "recorded" => $this->recorded, "length" => $this->length, "album_id" => $this->album_id, "album" => $this->album(), "genres" => $this->genres(), "artists" => $this->artists()];
+      return ["id" => $this->id, "song" => $this->song, "lyrics" => $this->lyrics, "released" => $this->released, "recorded" => $this->recorded, "length" => $this->length, "album_id" => $this->album_id, "album" => $this->album(), "genres" => $this->genres(), "artists" => $this->artists(), "medias" => $this->medias()];
 		}
 
 		public function arraylize_no_recursive() {
@@ -122,6 +140,25 @@
       
       return $songs;
     }
+    
+    public static function search($keyword) {
+      $con = new Connection();
+      $con = $con->getConnection();
+      $sql = "SELECT * FROM song where song like '%$keyword%'";
+      $rs = $con->query($sql);
+      $songs = [];
+
+      if ($rs->num_rows > 0)
+        while($row = $rs->fetch_assoc()) {
+          $song = new Song();
+          $song->put($row["id"], $row["song"], $row["lyrics"], $row["released"], $row["recorded"], $row["length"], $row["album_id"]);
+          $songs[] = $song->arraylize();
+        }
+
+      $con->close();
+      
+      return $songs;
+    }
 
     private function album() {
       if($this->album_id == null) {
@@ -181,6 +218,25 @@
       return $artists;
     }
 
+    private function medias() {
+      $con = new Connection();
+      $con = $con->getConnection();
+      $sql = "select * from song_media join media where media_id = id and song_id = $this->id";
+      $rs = $con->query($sql);
+      $medias = [];
+
+      if ($rs->num_rows > 0)
+        while($row = $rs->fetch_assoc()) {
+          $media = new Media();
+          $media->put($row["id"], $row["media"], $row["link"]);
+          $medias[] = $media->arraylize();
+        }
+
+      $con->close();
+      
+      return $medias;
+    }
+
     public function commit() {
       $con = new Connection();
       $con = $con->getConnection(); 
@@ -188,9 +244,10 @@
       $lyrics = $this->lyrics == "" ? null : $this->lyrics;
       $recorded = $this->recorded == "" ? null : $this->recorded;
       $length = $this->length == "" ? null : $this->length;
+      $album_id = $this->album_id == "" ? null : $this->album_id;
       $sql = "INSERT INTO song (song, lyrics, released, recorded, length, album_id) VALUES (?, ?, ?, ?, ?, ?)";
       $aux = $con->prepare($sql);
-      $aux->bind_param("sssssi", $this->song, $lyrics, $released, $recorded, $length, $this->album_id);
+      $aux->bind_param("sssssi", $this->song, $lyrics, $released, $recorded, $length, $album_id);
       $aux->execute();
       $this->id = $con->insert_id;
       $con->close();
@@ -213,6 +270,16 @@
     public function destroy() {
       $con = new Connection();
       $con = $con->getConnection();
+      $sql = "select * from song_media join media where media_id = id and song_id = $this->id";
+      $rs = $con->query($sql);
+
+      if ($rs->num_rows > 0)
+        while($row = $rs->fetch_assoc()) {
+          $media = new Media();
+          $media->put($row["id"], $row["media"], $row["link"]);
+          $media->destroy();
+        }
+
       $sql = "DELETE FROM song WHERE id = " . $this->id;
       $con->query($sql);
       $con->close();
@@ -263,6 +330,53 @@
       $con = $con->getConnection(); 
       $sql = "DELETE FROM songwritter WHERE song_id = $this->id";
       $con->query($sql);
+      $con->close();
+    }
+
+    public function bindMedia($medias) {
+      if(empty($medias)) {
+        return ;
+      }
+
+      $con = new Connection();
+      $con = $con->getConnection(); 
+      foreach($medias as $media_id) {
+        $sql = "INSERT INTO song_media VALUES (?, ?)";
+        $aux = $con->prepare($sql);
+        $aux->bind_param("ii", $this->id, $media_id);
+        $aux->execute();
+      }
+      $con->close();
+    }
+
+    public function unbindMedia($medias) {
+      $sql = "select * from song_media join media where song_id = $this->id and id = media_id";
+
+      if(!empty($medias)) {
+        $ids = "(";
+
+        foreach($medias as $key => $media) {
+          $ids .= $media;
+          if($key < count($medias)-1) {
+            $ids .= ", ";
+          }
+        }
+
+        $ids .= ")";
+        $sql = "select * from song_media join media where song_id = $this->id and id = media_id and media_id not in $ids";
+      }
+
+      $con = new Connection();
+      $con = $con->getConnection(); 
+      $rs = $con->query($sql);
+
+      if ($rs->num_rows > 0)
+        while($row = $rs->fetch_assoc()) {
+          $media = new Media();
+          $media->put($row["id"], $row["media"], $row["link"]);
+          $media->destroy();
+        }
+
       $con->close();
     }
 
