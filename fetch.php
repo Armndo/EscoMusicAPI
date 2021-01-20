@@ -2,25 +2,90 @@
 	include_once("./Model/Genre.php");
   include_once("./Model/Instrument.php");
   include_once("./Model/Artist.php");
+  include_once("./Model/Band.php");
+  include_once("./Model/Album.php");
+  include_once("./Model/Song.php");
   
-  header('Content-type: application/json');
+	header('Content-Type: application/json; charset=utf-8');
 
   $params = [];
   foreach($_REQUEST["params"] as $param) {
     $value = [];
-    switch($param) {
-      case "genre":
-        $value = Genre::get();
-        break;
-        case "instrument":
+    if(isset($_REQUEST["input"])) {
+      switch($param) {
+        case "genres":
+          $value = Genre::get_exclusive();
+          break;
+        case "instruments":
+          $value = Instrument::get_exclusive();
+          break;
+        case "artists":
+          $value = Artist::get_exclusive();
+          break;
+        case "bands":
+          $value = Band::get_exclusive();
+          break;
+        case "albums":
+          $value = Album::get_exclusive();
+          break;
+        case "songs":
+          $value = Song::get_exclusive();
+          break;
+      }
+    } else {
+      switch($param) {
+        case "genres":
+          $value = Genre::get();
+          break;
+        case "instruments":
           $value = Instrument::get();
           break;
-        case "artist":
+        case "artists":
           $value = Artist::get();
           break;
-      default:
-        $value = ["ERROR"];
-        break;
+        case "bands":
+          $value = Band::get();
+          break;
+        case "albums":
+          $value = Album::get();
+          break;
+        case "songs":
+          $value = Song::get();
+          break;
+        case "genre":
+          $value = new Genre();
+          $value->find($_REQUEST["genre_id"]);
+          $value = $value->arraylize();
+          break;
+        case "instrument":
+          $value = new Instrument();
+          $value->find($_REQUEST["instrument_id"]);
+          $value = $value->arraylize();
+          break;
+        case "artist":
+          $value = new Artist();
+          $value->find($_REQUEST["artist_id"]);
+          $value = $value->arraylize();
+          break;
+        case "band":
+          $value = new Band();
+          $value->find($_REQUEST["band_id"]);
+          $value = $value->arraylize();
+          break;
+        case "album":
+          $value = new Album();
+          $value->find($_REQUEST["album_id"]);
+          $value = $value->arraylize();
+          break;
+        case "song":
+          $value = new Song();
+          $value->find($_REQUEST["song_id"]);
+          $value = $value->arraylize();
+          break;
+        default:
+          $value = ["ERROR"];
+          break;
+      }
     }
     $params[$param] = $value;
   }

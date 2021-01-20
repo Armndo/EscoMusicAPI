@@ -1,10 +1,10 @@
 <?php
-	include_once("../Model/Artist.php");
+	include_once("../Model/Band.php");
 	include_once("../Model/Media.php");
 	
-  $controller = new ArtistController($_POST);
+  $controller = new BandController($_POST);
 
-	class ArtistController {
+	class BandController {
 
 		private $data;
 
@@ -26,11 +26,11 @@
     }
 
 		public function store() {
-			$artist = new Artist();
-			$artist->charge($this->data["name"], $this->data["birthday"], $this->data["gender"], $this->data["country"], $this->data["years_active"]);
-			$artist->commit();
-			$artist->bindGenre($this->data["genre"]);
-			$artist->bindInstrument($this->data["instrument"]);
+			$band = new Band();
+      $band->charge($this->data["band"], $this->data["created"], $this->data["country"], $this->data["years_active"]);
+			$band->commit();
+			$band->bindGenre($this->data["genre"]);
+			$band->bindArtist($this->data["artist"]);
 
 			$medias = [];
 			foreach($this->data["media"] as $media_data) {
@@ -40,12 +40,12 @@
 				$medias[] = $media->getId();
 			}
 
-			$artist->bindMedia($medias);
+			$band->bindMedia($medias);
 		}
 
 		public function update() {
-			$artist = new Artist();
-			$artist->find($this->data["id"]);
+			$band = new Band();
+			$band->find($this->data["id"]);
 			$medias_to_keep = [];
 			$medias_to_bind = [];
 			
@@ -63,19 +63,19 @@
 				}
 			}
 			
-			$artist->update($this->data["name"], $this->data["birthday"], $this->data["gender"], $this->data["country"], $this->data["years_active"]);
-			$artist->unbindGenres();
-			$artist->unbindInstruments();
-			$artist->bindGenre($this->data["genre"]);
-			$artist->bindInstrument($this->data["instrument"]);
-			$artist->bindMedia($medias_to_bind);
-			$artist->unbindMedia($medias_to_keep);
+			$band->update($this->data["band"], $this->data["created"], $this->data["country"], $this->data["years_active"]);
+			$band->unbindGenres();
+			$band->unbindArtists();
+			$band->bindGenre($this->data["genre"]);
+			$band->bindArtist($this->data["artist"]);
+			$band->bindMedia($medias_to_bind);
+			$band->unbindMedia($medias_to_keep);
 		}
 
 		public function destroy() {
-			$artist = new Artist();
-			$artist->find($this->data["id"]);
-			$artist->destroy();
+			$band = new Band();
+			$band->find($this->data["id"]);
+			$band->destroy();
 		}
 
 	}

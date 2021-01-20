@@ -68,9 +68,11 @@ create table song(
     song varchar(60) not null,
     lyrics text,
     released date,
-    recorded date,
+    recorded varchar(4),
     length varchar(10),
-    primary key(id)
+    album_id int,
+    primary key(id),
+    foreign key(album_id) references album(id) on delete cascade on update cascade
 );
 
 create table songwritter(
@@ -129,6 +131,14 @@ create table band_genre(
     foreign key(genre_id) references genre(id) on delete cascade on update cascade
 );
 
+create table song_genre(
+    song_id int not null,
+    genre_id int not null,
+    primary key(song_id, genre_id),
+    foreign key(song_id) references song(id) on delete cascade on update cascade,
+    foreign key(genre_id) references genre(id) on delete cascade on update cascade
+);
+
 create table artist_media(
     artist_id int not null,
     media_id int not null,
@@ -143,4 +153,12 @@ create table band_media(
     primary key(band_id, media_id),
     foreign key(band_id) references band(id) on delete cascade on update cascade,
     foreign key(media_id) references media(id) on delete cascade on update cascade
+);
+
+create table member(
+    artist_id int not null,
+    band_id int not null,
+    primary key(band_id, artist_id),
+    foreign key(band_id) references band(id) on delete cascade on update cascade,
+    foreign key(artist_id) references artist(id) on delete cascade on update cascade
 );

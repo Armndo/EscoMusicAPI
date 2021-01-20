@@ -1,72 +1,63 @@
 <?php
 	include_once("Connection.php");
-	include_once("Media.php");
 
-	class Artist {
+	class Band {
 
 		private $id;
-		private $name;
-		private $birthday;
-		private $gender;
+		private $band;
+		private $created;
     private $country;
 		private $years_active;
 
     public function find($id) {
       $con = new Connection();
       $con = $con->getConnection();
-      $sql = "SELECT * FROM artist WHERE id = " . $id;
+      $sql = "SELECT * FROM band WHERE id = " . $id;
       $rs = $con->query($sql);
       if ($rs->num_rows > 0) {
           $row = $rs->fetch_assoc();
           $this->id = $row["id"];
-          $this->name = $row["name"];
-          $this->birthday = $row["birthday"];
-          $this->gender = $row["gender"];
+          $this->band = $row["band"];
+          $this->created = $row["created"];
           $this->country = $row["country"];
           $this->years_active = $row["years_active"];
       }
       $con->close();
     }
 
-		public function put($id, $name, $birthday, $gender, $country, $years_active) {
+		public function put($id, $band, $created, $country, $years_active) {
 			$this->id = $id;
-			$this->name = $name;
-			$this->birthday = $birthday;
-			$this->gender = $gender;
+			$this->band = $band;
+			$this->created = $created;
 			$this->country = $country;
 			$this->years_active = $years_active;
     }
     
-    public function charge($name, $birthday, $gender, $country, $years_active) {
-			$this->name = $name;
-			$this->birthday = $birthday;
-			$this->gender = $gender;
+    public function charge($band, $created, $country, $years_active) {
+			$this->band = $band;
+			$this->created = $created;
 			$this->country = $country;
 			$this->years_active = $years_active;
     }
 
 		public function arraylize() {
-      return ["id" => $this->id, "name" => $this->name, "birthday" => $this->birthday, "gender" => $this->gender, "country" => $this->country, "years_active" => $this->years_active, "genres" => $this->genres(), "instruments" => $this->instruments(), "medias" => $this->medias(), "bands" => $this->bands(), "albums" => $this->albums(), "songs" => $this->songs()];
-		}
-
+			return ["id" => $this->id, "band" => $this->band, "created" => $this->created, "country" => $this->country, "years_active" => $this->years_active, "genres" => $this->genres(), "artists" => $this->artists(), "medias" => $this->medias(), "albums" => $this->albums()];
+    }
+    
 		public function arraylize_no_recursive() {
-      return ["id" => $this->id, "name" => $this->name, "birthday" => $this->birthday, "gender" => $this->gender, "country" => $this->country, "years_active" => $this->years_active];
+			return ["id" => $this->id, "band" => $this->band, "created" => $this->created, "country" => $this->country, "years_active" => $this->years_active];
 		}
 
 		public function getId() {
 			return $this->id;
 		}
 
-		public function getName() {
-			return $this->name;
+		public function getBand() {
+			return $this->band;
 		}
 
-		public function getBirthday() {
-			return $this->birthday;
-    }
-
-		public function getGender() {
-			return $this->gender;
+		public function getCreated() {
+			return $this->created;
     }
 
 		public function getCountry() {
@@ -80,102 +71,26 @@
     public static function get() {
       $con = new Connection();
       $con = $con->getConnection();
-      $sql = "SELECT * FROM artist";
+      $sql = "SELECT * FROM band";
       $rs = $con->query($sql);
-      $artists = [];
+      $bands = [];
 
       if ($rs->num_rows > 0)
         while($row = $rs->fetch_assoc()) {
-          $artist = new Artist();
-          $artist->put($row["id"], $row["name"], $row["birthday"], $row["gender"], $row["country"], $row["years_active"]);
-          $artists[] = $artist->arraylize();
+          $band = new Band();
+          $band->put($row["id"], $row["band"], $row["created"], $row["country"], $row["years_active"]);
+          $bands[] = $band->arraylize();
         }
 
       $con->close();
       
-      return $artists;
+      return $bands;
     }
     
     public static function get_exclusive() {
       $con = new Connection();
       $con = $con->getConnection();
-      $sql = "SELECT * FROM artist";
-      $rs = $con->query($sql);
-      $artists = [];
-
-      if ($rs->num_rows > 0)
-        while($row = $rs->fetch_assoc()) {
-          $artist = new Artist();
-          $artist->put($row["id"], $row["name"], $row["birthday"], $row["gender"], $row["country"], $row["years_active"]);
-          $artists[] = $artist->arraylize_no_recursive();
-        }
-
-      $con->close();
-      
-      return $artists;
-    }
-
-    private function genres() {
-      $con = new Connection();
-      $con = $con->getConnection();
-      $sql = "select * from artist_genre join genre where genre_id = id and artist_id = $this->id";
-      $rs = $con->query($sql);
-      $genres = [];
-
-      if ($rs->num_rows > 0)
-        while($row = $rs->fetch_assoc()) {
-          $genre = new Genre();
-          $genre->put($row["id"], $row["genre"], $row["description"]);
-          $genres[] = $genre->arraylize_no_recursive();
-        }
-
-      $con->close();
-      
-      return $genres;
-    }
-
-    private function instruments() {
-      $con = new Connection();
-      $con = $con->getConnection();
-      $sql = "select * from artist_instrument join instrument where instrument_id = id and artist_id = $this->id";
-      $rs = $con->query($sql);
-      $instruments = [];
-
-      if ($rs->num_rows > 0)
-        while($row = $rs->fetch_assoc()) {
-          $instrument = new Instrument();
-          $instrument->put($row["id"], $row["instrument"], $row["description"]);
-          $instruments[] = $instrument->arraylize_no_recursive();
-        }
-
-      $con->close();
-      
-      return $instruments;
-    }
-
-    private function medias() {
-      $con = new Connection();
-      $con = $con->getConnection();
-      $sql = "select * from artist_media join media where media_id = id and artist_id = $this->id";
-      $rs = $con->query($sql);
-      $medias = [];
-
-      if ($rs->num_rows > 0)
-        while($row = $rs->fetch_assoc()) {
-          $media = new Media();
-          $media->put($row["id"], $row["media"], $row["link"]);
-          $medias[] = $media->arraylize();
-        }
-
-      $con->close();
-      
-      return $medias;
-    }
-
-    private function bands() {
-      $con = new Connection();
-      $con = $con->getConnection();
-      $sql = "select * from member join band where band_id = id and artist_id = $this->id";
+      $sql = "SELECT * FROM band";
       $rs = $con->query($sql);
       $bands = [];
 
@@ -191,10 +106,67 @@
       return $bands;
     }
 
+    private function genres() {
+      $con = new Connection();
+      $con = $con->getConnection();
+      $sql = "select * from band_genre join genre where genre_id = id and band_id = $this->id";
+      $rs = $con->query($sql);
+      $genres = [];
+
+      if ($rs->num_rows > 0)
+        while($row = $rs->fetch_assoc()) {
+          $genre = new Genre();
+          $genre->put($row["id"], $row["genre"], $row["description"]);
+          $genres[] = $genre->arraylize_no_recursive();
+        }
+
+      $con->close();
+      
+      return $genres;
+    }
+
+    private function artists() {
+      $con = new Connection();
+      $con = $con->getConnection();
+      $sql = "select * from member join artist where artist_id = id and band_id = $this->id";
+      $rs = $con->query($sql);
+      $artists = [];
+
+      if ($rs->num_rows > 0)
+        while($row = $rs->fetch_assoc()) {
+          $artist = new Artist();
+          $artist->put($row["id"], $row["name"], $row["birthday"], $row["gender"], $row["country"], $row["years_active"]);
+          $artists[] = $artist->arraylize_no_recursive();
+        }
+
+      $con->close();
+      
+      return $artists;
+    }
+
+    private function medias() {
+      $con = new Connection();
+      $con = $con->getConnection();
+      $sql = "select * from band_media join media where media_id = id and band_id = $this->id";
+      $rs = $con->query($sql);
+      $medias = [];
+
+      if ($rs->num_rows > 0)
+        while($row = $rs->fetch_assoc()) {
+          $media = new Media();
+          $media->put($row["id"], $row["media"], $row["link"]);
+          $medias[] = $media->arraylize();
+        }
+
+      $con->close();
+      
+      return $medias;
+    }
+
     private function albums() {
       $con = new Connection();
       $con = $con->getConnection();
-      $sql = "select * from artist_album join album where id = album_id and artist_id = $this->id";
+      $sql = "select * from band_album join album where id = album_id and band_id = $this->id";
       $rs = $con->query($sql);
       $albums = [];
 
@@ -210,51 +182,30 @@
       return $albums;
     }
 
-    private function songs() {
-      $con = new Connection();
-      $con = $con->getConnection();
-      $sql = "select * from songwritter join song where id = song_id and artist_id = $this->id";
-      $rs = $con->query($sql);
-      $songs = [];
-
-      if ($rs->num_rows > 0)
-        while($row = $rs->fetch_assoc()) {
-          $song = new Song();
-          $song->put($row["id"], $row["song"], $row["lyrics"], $row["released"], $row["recorded"], $row["length"], $row["album_id"]);
-          $songs[] = $song->arraylize_no_recursive();
-        }
-
-      $con->close();
-      
-      return $songs;
-    }
-
     public function commit() {
       $con = new Connection();
       $con = $con->getConnection(); 
-      $birthday = $this->birthday == "" ? null : $this->birthday;
-      $gender = $this->gender == "" ? null : $this->gender;
+      $created = $this->created == "" ? null : $this->created;
       $country = $this->country == "" ? null : $this->country;
       $years_active = $this->years_active == "" ? null : $this->years_active;
-      $sql = "INSERT INTO artist (name, birthday, gender, country, years_active) VALUES (?, ?, ?, ?, ?)";
+      $sql = "INSERT INTO band (band, created, country, years_active) VALUES (?, ?, ?, ?)";
       $aux = $con->prepare($sql);
-      $aux->bind_param("sssss", $this->name, $birthday, $gender, $country, $years_active);
+      $aux->bind_param("ssss", $this->band, $created, $country, $years_active);
       $aux->execute();
       $this->id = $con->insert_id;
       $con->close();
     }
     
 
-    public function update($name, $birthday, $gender, $country, $years_active) {
+    public function update($band, $created, $country, $years_active) {
       $con = new Connection();
       $con = $con->getConnection();
-      $birthday = $birthday == "" ? null : $birthday;
-      $gender = $gender == "" ? null : $gender;
+      $created = $created == "" ? null : $created;
       $country = $country == "" ? null : $country;
       $years_active = $years_active == "" ? null : $years_active;
-      $sql = "update artist set name = ?, birthday = ?, gender = ?, country = ?, years_active = ? where id = $this->id";
+      $sql = "update band set band = ?, created = ?, country = ?, years_active = ? where id = $this->id";
       $aux = $con->prepare($sql);
-      $aux->bind_param("sssss", $name, $birthday, $gender, $country, $years_active);
+      $aux->bind_param("ssss", $band, $created, $country, $years_active);
       $aux->execute();
       $con->close();
     }
@@ -262,7 +213,7 @@
     public function destroy() {
       $con = new Connection();
       $con = $con->getConnection();
-      $sql = "select * from artist_media join media where media_id = id and artist_id = $this->id";
+      $sql = "select * from band_media join media where media_id = id and band_id = $this->id";
       $rs = $con->query($sql);
 
       if ($rs->num_rows > 0)
@@ -272,7 +223,7 @@
           $media->destroy();
         }
       
-      $sql = "DELETE FROM artist WHERE id = " . $this->id;
+      $sql = "DELETE FROM band WHERE id = " . $this->id;
       $con->query($sql);
       $con->close();
     }
@@ -285,7 +236,7 @@
       $con = new Connection();
       $con = $con->getConnection(); 
       foreach($genres as $genre_id) {
-        $sql = "INSERT INTO artist_genre VALUES (?, ?)";
+        $sql = "INSERT INTO band_genre VALUES (?, ?)";
         $aux = $con->prepare($sql);
         $aux->bind_param("ii", $this->id, $genre_id);
         $aux->execute();
@@ -296,31 +247,31 @@
     public function unbindGenres() {
       $con = new Connection();
       $con = $con->getConnection(); 
-      $sql = "DELETE FROM artist_genre WHERE artist_id = $this->id";
+      $sql = "DELETE FROM band_genre WHERE band_id = $this->id";
       $con->query($sql);
       $con->close();
     }
 
-    public function bindInstrument($instruments) {
-      if(empty($instruments)) {
+    public function bindArtist($artists) {
+      if(empty($artists)) {
         return ;
       }
 
       $con = new Connection();
       $con = $con->getConnection(); 
-      foreach($instruments as $instrument_id) {
-        $sql = "INSERT INTO artist_instrument VALUES (?, ?)";
+      foreach($artists as $artist_id) {
+        $sql = "INSERT INTO member VALUES (?, ?)";
         $aux = $con->prepare($sql);
-        $aux->bind_param("ii", $this->id, $instrument_id);
+        $aux->bind_param("ii", $artist_id, $this->id);
         $aux->execute();
       }
       $con->close();
     }
 
-    public function unbindInstruments() {
+    public function unbindArtists() {
       $con = new Connection();
       $con = $con->getConnection(); 
-      $sql = "DELETE FROM artist_instrument WHERE artist_id = $this->id";
+      $sql = "DELETE FROM member WHERE band_id = $this->id";
       $con->query($sql);
       $con->close();
     }
@@ -333,7 +284,7 @@
       $con = new Connection();
       $con = $con->getConnection(); 
       foreach($medias as $media_id) {
-        $sql = "INSERT INTO artist_media VALUES (?, ?)";
+        $sql = "INSERT INTO band_media VALUES (?, ?)";
         $aux = $con->prepare($sql);
         $aux->bind_param("ii", $this->id, $media_id);
         $aux->execute();
@@ -342,7 +293,7 @@
     }
 
     public function unbindMedia($medias) {
-      $sql = "select * from artist_media join media where artist_id = $this->id and id = media_id";
+      $sql = "select * from band_media join media where band_id = $this->id and id = media_id";
 
       if(!empty($medias)) {
         $ids = "(";
@@ -355,7 +306,7 @@
         }
 
         $ids .= ")";
-        $sql = "select * from artist_media join media where artist_id = $this->id and id = media_id and media_id not in $ids";
+        $sql = "select * from band_media join media where band_id = $this->id and id = media_id and media_id not in $ids";
       }
 
       $con = new Connection();

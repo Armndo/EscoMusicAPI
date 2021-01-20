@@ -1,44 +1,45 @@
 <?php
 	include_once("../Model/Genre.php");
-	
-	$controller = new GenreController($_POST);
+
+  $controller = new GenreController($_POST);
 
 	class GenreController {
 
-		private $request;
+		private $data;
 
 		public function __construct($request) {
-			$this->request = $request;
+			$this->data = json_decode($request["data"], true);
+			switch($this->data["action"]) {
+				case "create":
+					$this->store();
+					break;
+					case "update":
+					$this->update();
+					break;
+				case "destroy":
+					$this->destroy();
+					break;
+				default:
+					break;
+			}
     }
 
 		public function store() {
-			$usuario = new Usuario();
-			$usuario->charge($this->request["email"], $this->request["password"], "Proveedor");
-			$usuario->commit();
-			$proveedor = new Proveedor();
-			$proveedor->charge($this->request["razon"], $this->request["giro"], $usuario->getId());
-			$proveedor->commit();
-			$direccion = new Direccion();
-			$direccion->charge($this->request["calle"], $this->request["numext"], $this->request["numint"], $this->request["estado"], $this->request["municipio"], $this->request["colonia"], $this->request["cp"], null, $proveedor->getId());
-			$direccion->commit();
-			if($proveedor->getId() == 0) {
-				$usuario->destroy();
-				$direccion->destroy();
-			}
+			$genre = new Genre();
+			$genre->charge($this->data["genre"], $this->data["description"]);
+			$genre->commit();
 		}
 
 		public function update() {
-			$proveedor = new Proveedor();
-			$proveedor->find($this->request["id"]);
-			$proveedor->usuario()->update($this->request["password"]);
-			$proveedor->update($this->request["razon"], $this->request["giro"]);
-			$proveedor->direccion()->update($this->request["calle"], $this->request["numext"], $this->request["numint"], $this->request["estado"], $this->request["municipio"], $this->request["colonia"], $this->request["cp"]);
+			$genre = new Genre();
+			$genre->find($this->data["id"]);
+			$genre->update($this->data["genre"], $this->data["description"]);
 		}
 
 		public function destroy() {
-			$proveedor = new Proveedor();
-			$proveedor->find($this->request["id"]);
-			$proveedor->usuario()->destroy();
+			$genre = new Genre();
+			$genre->find($this->data["id"]);
+			$genre->destroy();
 		}
 
 	}
