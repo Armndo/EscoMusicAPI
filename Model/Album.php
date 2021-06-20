@@ -90,7 +90,7 @@
     public static function get() {
       $con = new Connection();
       $con = $con->getConnection();
-      $sql = "SELECT * FROM album";
+      $sql = "SELECT * FROM album order by released";
       $rs = $con->query($sql);
       $albums = [];
 

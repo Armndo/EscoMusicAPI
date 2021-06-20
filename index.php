@@ -9,8 +9,6 @@
 
   	[$auth, $user] = User::verify($email, $password);
 
-  	// var_dump($user);
-
   	echo json_encode([
   		"auth" => $auth,
   		"user" => $user,
